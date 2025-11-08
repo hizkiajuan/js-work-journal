@@ -31,6 +31,22 @@ const createEmptyEntry = (date = new Date().toISOString().split('T')[0]): Entry 
   majorContribution: []
 });
 
+const getDayAbbreviation = (dateString: string) => {
+  if (!dateString) {
+    return '---';
+  }
+  const parts = dateString.split('-').map(Number);
+  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) {
+    return '---';
+  }
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) {
+    return '---';
+  }
+  return date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+};
+
 // Parse time format (3h, 1d, 30m) to minutes
 const parseTimeToMinutes = (timeStr: string) => {
   if (!timeStr) return 0;
@@ -281,7 +297,10 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
             <div key={entry.date} style={styles.card}>
               <div style={styles.cardHeader}>
                 <div style={styles.cardHeaderLeft}>
-                  <h2 style={styles.cardDate}>{entry.date}</h2>
+                  <div style={styles.cardDateGroup}>
+                    <h2 style={styles.cardDate}>{entry.date}</h2>
+                    <span style={styles.dayBadge}>{getDayAbbreviation(entry.date)}</span>
+                  </div>
                   {entry.logs.length > 0 && (
                     <span style={{
                       ...styles.badge,
@@ -413,12 +432,17 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
             <div style={styles.dialogContent}>
               <label style={styles.label}>
                 Date
-                <input
-                  type="date"
-                  value={currentEntry.date}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  style={styles.input}
-                />
+                <div style={styles.dateInputRow}>
+                  <input
+                    type="date"
+                    value={currentEntry.date}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                    style={styles.input}
+                  />
+                  <span style={styles.dayBadge}>
+                    {getDayAbbreviation(currentEntry.date)}
+                  </span>
+                </div>
               </label>
 
               <div style={styles.section}>

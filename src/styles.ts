@@ -84,11 +84,25 @@ export const styles: Record<string, CSSProperties> = {
     fontSize: '20px',
     color: '#333'
   },
+  cardDateGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
   badge: {
     padding: '4px 12px',
     borderRadius: '12px',
     fontSize: '12px',
     fontWeight: '500'
+  },
+  dayBadge: {
+    padding: '4px 10px',
+    borderRadius: '999px',
+    backgroundColor: '#e3f2fd',
+    color: '#0d47a1',
+    fontSize: '12px',
+    fontWeight: 700,
+    letterSpacing: '0.08em'
   },
   cardContent: {
     display: 'grid',
@@ -237,6 +251,11 @@ export const styles: Record<string, CSSProperties> = {
     marginBottom: '20px',
     fontSize: '14px',
     fontWeight: '500'
+  },
+  dateInputRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
   },
   input: {
     padding: '8px 12px',
