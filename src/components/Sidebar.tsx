@@ -54,13 +54,14 @@ const Sidebar = ({ open, drawerWidth, handleOpenDialog }: SidebarProps) => {
                 <ListItemIcon sx={{ color: 'white' }}>
                   <AddCircle />
                 </ListItemIcon>
-                <ListItemText primary="Add Entry" />
+                <ListItemText primary="New Entry" />
               </ListItemButton>
             </ListItem>
             <IconButton
               color="primary"
               sx={{ marginRight: '16px', marginLeft: '-8px', backgroundColor: 'white', borderRadius: '10px', border: '1px solid lab(90 0 0)' }}
               onClick={exportJournalData}
+              title="Download all data"
             >
               <CloudDownloadOutlined />
             </IconButton>

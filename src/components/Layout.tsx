@@ -22,7 +22,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{ 
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
-  marginLeft: `${-1 * drawerWidth + 8}px`,
+  marginLeft: `${-1 * drawerWidth}px`,
   variants: [
     {
       props: ({ open }) => open,

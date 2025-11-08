@@ -10,8 +10,20 @@ interface EntriesProps {
 
 const RECORDS_PER_PAGE = 20;
 
-const createEmptyEntry = (): Entry => ({
-  date: new Date().toISOString().split('T')[0],
+const sortEntriesByDateDesc = (list: Entry[]) =>
+  [...list].sort((a, b) => b.date.localeCompare(a.date));
+
+const cloneEntry = (entry: Entry): Entry => ({
+  ...entry,
+  todos: entry.todos.map((todo) => ({ ...todo })),
+  logs: entry.logs.map((log) => ({ ...log })),
+  til: [...entry.til],
+  bigTheme: [...entry.bigTheme],
+  majorContribution: [...entry.majorContribution],
+});
+
+const createEmptyEntry = (date = new Date().toISOString().split('T')[0]): Entry => ({
+  date,
   todos: [],
   logs: [],
   til: [],
@@ -48,30 +60,33 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
   const [currentEntry, setCurrentEntry] = useState<Entry>(() => createEmptyEntry());
   const bulletFields: BulletField[] = ['til', 'bigTheme', 'majorContribution'];
 
+  const prepareEntryForEditing = useCallback((entry: Entry) => {
+    setEditingEntry(entry);
+    setCurrentEntry(cloneEntry(entry));
+  }, []);
+
   const handleOpenDialog = useCallback((entry?: Entry) => {
     if (entry) {
-      setEditingEntry(entry);
-      setCurrentEntry({
-        ...entry,
-        todos: entry.todos.map((todo) => ({ ...todo })),
-        logs: entry.logs.map((log) => ({ ...log })),
-        til: [...entry.til],
-        bigTheme: [...entry.bigTheme],
-        majorContribution: [...entry.majorContribution],
-      });
+      prepareEntryForEditing(entry);
     } else {
-      setEditingEntry(null);
-      setCurrentEntry(createEmptyEntry());
+      const today = new Date().toISOString().split('T')[0];
+      const existingToday = entries.find((item) => item.date === today);
+      if (existingToday) {
+        prepareEntryForEditing(existingToday);
+      } else {
+        setEditingEntry(null);
+        setCurrentEntry(createEmptyEntry(today));
+      }
     }
     setShowDialog(true);
-  }, []);
+  }, [entries, prepareEntryForEditing]);
 
   useEffect(() => {
     const stored = localStorage.getItem(ENTRIES_STORAGE_KEY);
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as Entry[];
-        setEntries(parsed);
+        setEntries(sortEntriesByDateDesc(parsed));
       } catch (error) {
         console.warn('Failed to parse stored entries', error);
       }
@@ -112,10 +127,27 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
 
   const handleSaveEntry = () => {
     setEntries((prevEntries) => {
-      if (editingEntry) {
-        return prevEntries.map((entry) => entry.date === editingEntry.date ? currentEntry : entry);
+      const entriesCopy = [...prevEntries];
+      const existingIndex = entriesCopy.findIndex(
+        (entry) => entry.date === currentEntry.date
+      );
+
+      if (existingIndex !== -1) {
+        entriesCopy[existingIndex] = currentEntry;
+        return sortEntriesByDateDesc(entriesCopy);
       }
-      return [currentEntry, ...prevEntries];
+
+      if (editingEntry) {
+        const editingIndex = entriesCopy.findIndex(
+          (entry) => entry.date === editingEntry.date
+        );
+        if (editingIndex !== -1) {
+          entriesCopy.splice(editingIndex, 1, currentEntry);
+          return sortEntriesByDateDesc(entriesCopy);
+        }
+      }
+
+      return sortEntriesByDateDesc([currentEntry, ...entriesCopy]);
     });
     handleCloseDialog();
   };
@@ -123,6 +155,16 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
   const handleDeleteEntry = (date: string) => {
     if (window.confirm('Delete this entry?')) {
       setEntries((prevEntries) => prevEntries.filter((entry) => entry.date !== date));
+    }
+  };
+
+  const handleDateChange = (nextDate: string) => {
+    const existingEntry = entries.find((entry) => entry.date === nextDate);
+    if (existingEntry) {
+      prepareEntryForEditing(existingEntry);
+    } else {
+      setEditingEntry(null);
+      setCurrentEntry(createEmptyEntry(nextDate));
     }
   };
 
@@ -374,7 +416,7 @@ const Entries = ({ setAddEntry, isVisible }: EntriesProps) => {
                 <input
                   type="date"
                   value={currentEntry.date}
-                  onChange={(e) => setCurrentEntry({ ...currentEntry, date: e.target.value })}
+                  onChange={(e) => handleDateChange(e.target.value)}
                   style={styles.input}
                 />
               </label>
